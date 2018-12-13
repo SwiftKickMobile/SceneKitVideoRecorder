@@ -29,7 +29,7 @@ extension SceneKitVideoRecorder {
                      outputUrl: URL(fileURLWithPath: NSTemporaryDirectory() + "output.mp4"),
                      audioOnlyUrl: URL(fileURLWithPath: NSTemporaryDirectory() + "audio.m4a"),
                      videoOnlyUrl: URL(fileURLWithPath: NSTemporaryDirectory() + "video.mp4"),
-                     fileType: AVFileTypeAppleM4V,
+                     fileType: convertFromAVFileType(AVFileType.m4v),
                      codec: AVVideoCodecH264,
                      deleteFileIfExists: true,
                      useMicrophone: true,
@@ -63,3 +63,8 @@ extension SceneKitVideoRecorder {
   }
 }
 
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromAVFileType(_ input: AVFileType) -> String {
+	return input.rawValue
+}
