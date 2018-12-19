@@ -133,7 +133,7 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
                 }
             default:
                 DispatchQueue.main.async {
-                    self.isAudioSetup = true
+                    self.isAudioSetup = false
                 }
             }
         } catch {
