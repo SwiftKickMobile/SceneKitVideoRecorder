@@ -141,25 +141,29 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
         }
     }
 
-  private func startRecordingAudio() {
-    let audioUrl = self.options.audioOnlyUrl
-
-    let settings = self.options.assetWriterAudioInputSettings
-
-    do {
-      audioRecorder = try AVAudioRecorder(url: audioUrl, settings: settings)
-      audioRecorder.delegate = self
-      audioRecorder.record()
-
-    } catch {
-      finishRecordingAudio(success: false)
+    private func startRecordingAudio() {
+        let audioUrl = self.options.audioOnlyUrl
+        
+        let settings = self.options.assetWriterAudioInputSettings
+        
+        do {
+            if useAudio{
+                audioRecorder = try AVAudioRecorder(url: audioUrl, settings: settings)
+                audioRecorder.delegate = self
+                audioRecorder.record()
+            }
+            
+        } catch {
+            finishRecordingAudio(success: false)
+        }
     }
-  }
-
-  private func finishRecordingAudio(success: Bool) {
-    audioRecorder.stop()
-    audioRecorder = nil
-  }
+    
+    private func finishRecordingAudio(success: Bool) {
+        if useAudio{
+            audioRecorder.stop()
+            audioRecorder = nil
+        }
+    }
 
   private func setupVideo() {
 
