@@ -117,27 +117,29 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
     return output
   }
 
-  public func setupAudio() {
-    guard self.options.useMicrophone, !self.isAudioSetup else { return }
-
-    recordingSession = AVAudioSession.sharedInstance()
-
-    do {
-        try recordingSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
-        try recordingSession.setActive(true)
-        recordingSession.requestRecordPermission() { allowed in
-            DispatchQueue.main.async {
-                if allowed {
+    public func setupAudio() {
+        guard self.options.useMicrophone, !self.isAudioSetup else { return }
+        
+        recordingSession = AVAudioSession.sharedInstance()
+        
+        do {
+            try recordingSession.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
+            try recordingSession.setActive(true)
+            self.isAudioSetup = true
+            switch recordingSession.recordPermission {
+            case .granted:
+                DispatchQueue.main.async {
                     self.isAudioSetup = true
-                } else {
-                    self.isAudioSetup = false
+                }
+            default:
+                DispatchQueue.main.async {
+                    self.isAudioSetup = true
                 }
             }
+        } catch {
+            self.isAudioSetup = false
         }
-    } catch {
-      self.isAudioSetup = false
     }
-  }
 
   private func startRecordingAudio() {
     let audioUrl = self.options.audioOnlyUrl
