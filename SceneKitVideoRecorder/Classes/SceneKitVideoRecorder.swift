@@ -245,6 +245,11 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
     return promise.future
   }
 
+  public func snapshot() -> UIImage {
+    let time = CACurrentMediaTime()
+    return renderer.snapshot(atTime: time, with: self.options.videoSize, antialiasingMode: self.options.antialiasingMode)
+  }
+    
   private func getCurrentCMTime() -> CMTime {
     return CMTimeMakeWithSeconds(CACurrentMediaTime(), preferredTimescale: 1000);
   }
