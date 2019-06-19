@@ -308,8 +308,6 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
             currentDrawable = nil
             
             guard let pixelBuffer = pixelBufferTemp else { print("No buffer"); return }
-            let cImage = CIImage(cvImageBuffer: pixelBuffer)
-            let uiImage = UIImage(ciImage: cImage)
             
             guard videoInput.isReadyForMoreMediaData else { print("No ready for media data"); return }
             
