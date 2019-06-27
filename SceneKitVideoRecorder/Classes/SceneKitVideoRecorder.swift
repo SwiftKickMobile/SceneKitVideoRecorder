@@ -185,6 +185,7 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
         let promise = Promise<Void, NSError>()
         guard !isRecording else {
             promise.failure(NSError(domain: errorDomain, code: ErrorCode.recorderBusy.rawValue, userInfo: nil))
+            stopDisplayLink()
             return promise.future
         }
         isRecording = true
@@ -208,6 +209,7 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
         guard isRecording, writer.status == .writing else {
             let error = NSError(domain: errorDomain, code: ErrorCode.notReady.rawValue, userInfo: nil)
             promise.failure(error)
+            stopDisplayLink()
             return promise.future
         }
         
