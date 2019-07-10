@@ -10,18 +10,22 @@ struct PixelBufferFactory {
     
     static let context = CIContext(mtlDevice: MTLCreateSystemDefaultDevice()!)
     
-    static func make(with currentDrawable: CAMetalDrawable, usingBuffer pool: CVPixelBufferPool) -> CVPixelBuffer? {
-        var destinationTexture = currentDrawable.texture
+    static func make(with image: UIImage, usingBuffer pool: CVPixelBufferPool) -> CVPixelBuffer? {
+        
         var pixelBuffer: CVPixelBuffer?
         CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pool, &pixelBuffer)
         if let pixelBuffer = pixelBuffer {
             CVPixelBufferLockBaseAddress(pixelBuffer, CVPixelBufferLockFlags.init(rawValue: 0))
-            let region = MTLRegionMake2D(0, 0, Int(currentDrawable.layer.drawableSize.width), Int(currentDrawable.layer.drawableSize.height))
-            let bytesPerRow = CVPixelBufferGetBytesPerRow(pixelBuffer)
             let pixelData = CVPixelBufferGetBaseAddress(pixelBuffer)
-            destinationTexture.getBytes(pixelData!, bytesPerRow: bytesPerRow, from: region, mipmapLevel: 0)
+            let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
+            let context = CGContext(data: pixelData, width: Int(image.size.width), height: Int(image.size.height), bitsPerComponent: 8, bytesPerRow: CVPixelBufferGetBytesPerRow(pixelBuffer), space: rgbColorSpace, bitmapInfo: CGImageAlphaInfo.noneSkipFirst.rawValue)
             
+            context?.translateBy(x: 0, y: image.size.height)
+            context?.scaleBy(x: 1.0, y: -1.0)
             
+            UIGraphicsPushContext(context!)
+            image.draw(in: CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height))
+            UIGraphicsPopContext()
             CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags.init(rawValue: 0))
             return pixelBuffer
         }
