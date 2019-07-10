@@ -10,7 +10,6 @@ import ARKit
 import AVFoundation
 import CoreImage
 import BrightFutures
-import Metal
 
 public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
     private var writer: AVAssetWriter!
@@ -21,7 +20,7 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
     
     private var pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
     private var options: Options
-    private var currentDrawable: CAMetalDrawable?
+    
     private let frameQueue = DispatchQueue(label: "com.svtek.SceneKitVideoRecorder.frameQueue")
     private let bufferQueue = DispatchQueue(label: "com.svtek.SceneKitVideoRecorder.bufferQueue", attributes: .concurrent)
     private let audioQueue = DispatchQueue(label: "com.svtek.SceneKitVideoRecorder.audioQueue")
@@ -34,7 +33,7 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
     private var currentTime: CMTime = CMTime.invalid
     
     private var sceneView: SCNView
-    private var metalLayer: CAMetalLayer
+    
     private var audioSettings: [String : Any]?
     
     public var isAudioSetup: Bool = false
@@ -66,9 +65,6 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
         
         self.isRecording = false
         self.videoFramesWritten = false
-        
-        self.metalLayer = (sceneView.layer as? CAMetalLayer)!
-        self.metalLayer.framebufferOnly = false
         
         super.init()
         
@@ -185,7 +181,6 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
         let promise = Promise<Void, NSError>()
         guard !isRecording else {
             promise.failure(NSError(domain: errorDomain, code: ErrorCode.recorderBusy.rawValue, userInfo: nil))
-            stopDisplayLink()
             return promise.future
         }
         isRecording = true
@@ -209,7 +204,6 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
         guard isRecording, writer.status == .writing else {
             let error = NSError(domain: errorDomain, code: ErrorCode.notReady.rawValue, userInfo: nil)
             promise.failure(error)
-            stopDisplayLink()
             return promise.future
         }
         
@@ -299,15 +293,13 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
         autoreleasepool {
             
             let time = CACurrentMediaTime()
-            //let image = renderer.snapshot(atTime: time, with: self.options.videoSize, antialiasingMode: self.options.antialiasingMode)
-            while (currentDrawable == nil) {
-                currentDrawable = metalLayer.nextDrawable()
-            }
+            let image = renderer.snapshot(atTime: time, with: self.options.videoSize, antialiasingMode: self.options.antialiasingMode)
+            
+            updateFrameHandler?(image)
             
             guard let pool = self.pixelBufferAdaptor.pixelBufferPool else { print("No pool"); return }
             
-            let pixelBufferTemp = PixelBufferFactory.make(with: currentDrawable!, usingBuffer: pool)
-            currentDrawable = nil
+            let pixelBufferTemp = PixelBufferFactory.make(with: image, usingBuffer: pool)
             
             guard let pixelBuffer = pixelBufferTemp else { print("No buffer"); return }
             
@@ -380,7 +372,7 @@ public class SceneKitVideoRecorder: NSObject, AVAudioRecorderDelegate {
         
         let savePathUrl : URL = self.options.outputUrl
         
-        let assetExport: AVAssetExportSession = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetHighestQuality)!
+        let assetExport: AVAssetExportSession = AVAssetExportSession(asset: mixComposition, presetName: options.presetQuality)!
         assetExport.outputFileType = AVFileType.mp4
         assetExport.outputURL = savePathUrl
         assetExport.shouldOptimizeForNetworkUse = true

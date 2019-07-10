@@ -21,6 +21,7 @@ extension SceneKitVideoRecorder {
         public var deleteFileIfExists: Bool
         public var useMicrophone: Bool
         public var antialiasingMode: SCNAntialiasingMode
+        public var presetQuality: String
         
         public static var `default`: Options {
             return Options(timeScale: 1000,
@@ -33,7 +34,7 @@ extension SceneKitVideoRecorder {
                            codec: AVVideoCodecH264,
                            deleteFileIfExists: true,
                            useMicrophone: true,
-                           antialiasingMode: .multisampling4X)
+                           antialiasingMode: .multisampling4X, presetQuality: AVAssetExportPresetHighestQuality)
         }
         
         var assetWriterVideoInputSettings: [String : Any] {
@@ -55,7 +56,7 @@ extension SceneKitVideoRecorder {
         
         var sourcePixelBufferAttributes: [String : Any] {
             return [
-                kCVPixelBufferPixelFormatTypeKey as String: NSNumber(value: kCVPixelFormatType_32BGRA),
+                kCVPixelBufferPixelFormatTypeKey as String: NSNumber(value: kCVPixelFormatType_32ARGB),
                 kCVPixelBufferWidthKey as String: videoSize.width,
                 kCVPixelBufferHeightKey as String: videoSize.height,
             ]
